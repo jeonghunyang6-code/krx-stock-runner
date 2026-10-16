@@ -1,0 +1,12 @@
+name: Verify free public runner
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  verify:
+    if: github.repository == 'jeonghunyang6-code/krx-stock-runner' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Verify free runner availability
+        run: python3 -c "print('PUBLIC_RUNNER_READY_NO_CREDENTIALS_USED')"
