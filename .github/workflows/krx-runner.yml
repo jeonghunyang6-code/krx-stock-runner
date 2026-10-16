@@ -1,0 +1,45 @@
+name: Private screener runner
+on:
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: private-screener
+  cancel-in-progress: false
+jobs:
+  daily:
+    if: github.repository == 'jeonghunyang6-code/krx-stock-runner' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout private application
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: jeonghunyang6-code/krx-stock-screener
+          ref: main
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
+          path: private-app
+      - name: Collect and verify inputs
+        id: collect
+        working-directory: private-app
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+          BOOTSTRAP_CHECK: 'false'
+        run: |
+          python3 -c 'import os; os.environ["GITHUB_REPOSITORY"]="jeonghunyang6-code/krx-stock-screener"; import github_job; raise SystemExit(github_job.main())'
+      - name: Install research libraries only when needed
+        if: steps.collect.outputs.report_needed == 'true'
+        working-directory: private-app
+        run: |
+          python3 -m venv .report-venv
+          .report-venv/bin/python -m pip install --disable-pip-version-check -r requirements-report.txt
+      - name: Build and verify private mobile report
+        if: steps.collect.outputs.report_needed == 'true'
+        working-directory: private-app
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          .report-venv/bin/python -c 'import os; os.environ["GITHUB_REPOSITORY"]="jeonghunyang6-code/krx-stock-screener"; import pipeline_job; raise SystemExit(pipeline_job.main())'
+
