@@ -40,6 +40,9 @@ jobs:
         working-directory: private-app
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
         run: |
           .report-venv/bin/python -c 'import os; os.environ["GITHUB_REPOSITORY"]="jeonghunyang6-code/krx-stock-screener"; import pipeline_job; raise SystemExit(pipeline_job.main())'
 
